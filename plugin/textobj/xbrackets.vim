@@ -31,10 +31,31 @@ call textobj#user#plugin('xbrackets', {
 \	'*sfile*': expand('<sfile>')
 \   },
 \   'x()': {
-\	'select-a': ['a9', 'a0'],
-\	'select-i': ['i9', 'i0'],
-\	'*select-a-function*': 's:select_xparen_a',
-\	'*select-i-function*': 's:select_xparen_i',
+\	'select-a': ['ax(', 'ax)', 'axb', 'a9', 'a0'],
+\	'select-i': ['ix(', 'ix)', 'ixb', 'i9', 'i0'],
+\	'*select-a-function*': 's:select_xparens_a',
+\	'*select-i-function*': 's:select_xparens_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'x<>': {
+\	'select-a': ['ax<', 'ax>'],
+\	'select-i': ['ix<', 'ix>'],
+\	'*select-a-function*': 's:select_xangles_a',
+\	'*select-i-function*': 's:select_xangles_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'x[]': {
+\	'select-a': ['ax[', 'ax]'],
+\	'select-i': ['ix[', 'ix]'],
+\	'*select-a-function*': 's:select_xbrackets_a',
+\	'*select-i-function*': 's:select_xbrackets_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'x{}': {
+\	'select-a': ['ax{', 'ax}', 'axB'],
+\	'select-i': ['ix{', 'ix}', 'ixB'],
+\	'*select-a-function*': 's:select_xbraces_a',
+\	'*select-i-function*': 's:select_xbraces_i',
 \	'*sfile*': expand('<sfile>')
 \   },
 \})
@@ -135,7 +156,7 @@ function! s:select_i(open, func)
     return [type, b, e]
 endfunction
 
-function! s:xparen_func(b, e)
+function! s:x_func(b, e)
     let pos = getpos('.')
     call setpos('.', a:b)
 
@@ -146,12 +167,36 @@ function! s:xparen_func(b, e)
     return [b, a:e]
 endfunction
 
-function! s:select_xparen_a()
-    return s:select_a('(', function('s:xparen_func'))
+function! s:select_xparens_a()
+    return s:select_a('(', function('s:x_func'))
 endfunction
 
-function! s:select_xparen_i()
-    return s:select_i('(', function('s:xparen_func'))
+function! s:select_xparens_i()
+    return s:select_i('(', function('s:x_func'))
+endfunction
+
+function! s:select_xangles_a()
+    return s:select_a('<', function('s:x_func'))
+endfunction
+
+function! s:select_xangles_i()
+    return s:select_i('<', function('s:x_func'))
+endfunction
+
+function! s:select_xbrackets_a()
+    return s:select_a('[', function('s:x_func'))
+endfunction
+
+function! s:select_xbrackets_i()
+    return s:select_i('[', function('s:x_func'))
+endfunction
+
+function! s:select_xbraces_a()
+    return s:select_a('{', function('s:x_func'))
+endfunction
+
+function! s:select_xbraces_i()
+    return s:select_i('{', function('s:x_func'))
 endfunction
 
 function! s:variable_func(b, e)
