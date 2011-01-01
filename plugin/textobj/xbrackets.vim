@@ -86,6 +86,62 @@ call textobj#user#plugin('xbrackets', {
 \	'*select-i-function*': 's:select_xs_braces_i',
 \	'*sfile*': expand('<sfile>')
 \   },
+\   'y()': {
+\	'select-a': ['ay(', 'ay)', 'ayb'],
+\	'select-i': ['iy(', 'iy)', 'iyb'],
+\	'*select-a-function*': 's:select_y_parens_a',
+\	'*select-i-function*': 's:select_y_parens_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'y<>': {
+\	'select-a': ['ay<', 'ay>'],
+\	'select-i': ['iy<', 'iy>'],
+\	'*select-a-function*': 's:select_y_angles_a',
+\	'*select-i-function*': 's:select_y_angles_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'y[]': {
+\	'select-a': ['ay[', 'ay]'],
+\	'select-i': ['iy[', 'iy]'],
+\	'*select-a-function*': 's:select_y_brackets_a',
+\	'*select-i-function*': 's:select_y_brackets_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'y{}': {
+\	'select-a': ['ay{', 'ay}', 'ayB'],
+\	'select-i': ['iy{', 'iy}', 'iyB'],
+\	'*select-a-function*': 's:select_y_braces_a',
+\	'*select-i-function*': 's:select_y_braces_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'ys()': {
+\	'select-a': ['aY(', 'aY)', 'aYb'],
+\	'select-i': ['iY(', 'iY)', 'iYb'],
+\	'*select-a-function*': 's:select_ys_parens_a',
+\	'*select-i-function*': 's:select_ys_parens_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'ys<>': {
+\	'select-a': ['aY<', 'aY>'],
+\	'select-i': ['iY<', 'iY>'],
+\	'*select-a-function*': 's:select_ys_angles_a',
+\	'*select-i-function*': 's:select_ys_angles_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'ys[]': {
+\	'select-a': ['aY[', 'aY]'],
+\	'select-i': ['iY[', 'iY]'],
+\	'*select-a-function*': 's:select_ys_brackets_a',
+\	'*select-i-function*': 's:select_ys_brackets_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'ys{}': {
+\	'select-a': ['aY{', 'aY}', 'aYB'],
+\	'select-i': ['iY{', 'iY}', 'iYB'],
+\	'*select-a-function*': 's:select_ys_braces_a',
+\	'*select-i-function*': 's:select_ys_braces_i',
+\	'*sfile*': expand('<sfile>')
+\   },
 \})
 
 function! s:getc(...)
@@ -186,21 +242,17 @@ endfunction
 
 function! s:x_func(b, e)
     return s:xs_func(a:b, a:e, 1)
-    let pos = getpos('.')
-    call setpos('.', a:b)
-
-    normal! b
-    let b = s:getc() =~ '\k' ? getpos('.') : []
-
-    call setpos('.', pos)
-    return [b, a:e]
 endfunction
 
 function! s:xs_func(b, e, ...)
     let max = a:0 > 0 ? a:1 : -1
+    let isk = a:0 > 1 ? a:2 : ''
 
     let pos = getpos('.')
+    let isk_save = &isk
+
     call setpos('.', a:b)
+    execute 'set isk+=' . isk
 
     let b = []
     let c = 0
@@ -211,8 +263,22 @@ function! s:xs_func(b, e, ...)
 	normal! b
     endwhile
 
+    let &isk = isk_save
     call setpos('.', pos)
     return [b, a:e]
+endfunction
+
+function! s:y_func(b, e)
+    return s:ys_func(a:b, a:e, 1)
+endfunction
+
+function! s:ys_func(b, e, ...)
+    let max = a:0 > 0 ? a:1 : -1
+    let extra_isk = exists("b:textobj_xbrackets_extra_iskeyword") ?
+    \		    b:textobj_xbrackets_extra_iskeyword :
+    \		    g:textobj_xbrackets_extra_iskeyword
+
+    return s:xs_func(a:b, a:e, max, extra_isk)
 endfunction
 
 function! s:select_x_parens_a()
@@ -279,6 +345,70 @@ function! s:select_xs_braces_i()
     return s:select_i('{', function('s:xs_func'))
 endfunction
 
+function! s:select_y_parens_a()
+    return s:select_a('(', function('s:y_func'))
+endfunction
+
+function! s:select_y_parens_i()
+    return s:select_i('(', function('s:y_func'))
+endfunction
+
+function! s:select_y_angles_a()
+    return s:select_a('<', function('s:y_func'))
+endfunction
+
+function! s:select_y_angles_i()
+    return s:select_i('<', function('s:y_func'))
+endfunction
+
+function! s:select_y_brackets_a()
+    return s:select_a('[', function('s:y_func'))
+endfunction
+
+function! s:select_y_brackets_i()
+    return s:select_i('[', function('s:y_func'))
+endfunction
+
+function! s:select_y_braces_a()
+    return s:select_a('{', function('s:y_func'))
+endfunction
+
+function! s:select_y_braces_i()
+    return s:select_i('{', function('s:y_func'))
+endfunction
+
+function! s:select_ys_parens_a()
+    return s:select_a('(', function('s:ys_func'))
+endfunction
+
+function! s:select_ys_parens_i()
+    return s:select_i('(', function('s:ys_func'))
+endfunction
+
+function! s:select_ys_angles_a()
+    return s:select_a('<', function('s:ys_func'))
+endfunction
+
+function! s:select_ys_angles_i()
+    return s:select_i('<', function('s:ys_func'))
+endfunction
+
+function! s:select_ys_brackets_a()
+    return s:select_a('[', function('s:ys_func'))
+endfunction
+
+function! s:select_ys_brackets_i()
+    return s:select_i('[', function('s:ys_func'))
+endfunction
+
+function! s:select_ys_braces_a()
+    return s:select_a('{', function('s:ys_func'))
+endfunction
+
+function! s:select_ys_braces_i()
+    return s:select_i('{', function('s:ys_func'))
+endfunction
+
 function! s:variable_func(b, e)
     let pos = getpos('.')
     call setpos('.', a:b)
@@ -321,5 +451,7 @@ function! s:select_variable_i()
     endif
     return s:select_variable_p_i()
 endfunction
+
+let g:textobj_xbrackets_extra_iskeyword = "*"
 
 let &cpo = s:save_cpo
