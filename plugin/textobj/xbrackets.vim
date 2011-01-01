@@ -33,29 +33,57 @@ call textobj#user#plugin('xbrackets', {
 \   'x()': {
 \	'select-a': ['ax(', 'ax)', 'axb', 'a9', 'a0'],
 \	'select-i': ['ix(', 'ix)', 'ixb', 'i9', 'i0'],
-\	'*select-a-function*': 's:select_xparens_a',
-\	'*select-i-function*': 's:select_xparens_i',
+\	'*select-a-function*': 's:select_x_parens_a',
+\	'*select-i-function*': 's:select_x_parens_i',
 \	'*sfile*': expand('<sfile>')
 \   },
 \   'x<>': {
 \	'select-a': ['ax<', 'ax>'],
 \	'select-i': ['ix<', 'ix>'],
-\	'*select-a-function*': 's:select_xangles_a',
-\	'*select-i-function*': 's:select_xangles_i',
+\	'*select-a-function*': 's:select_x_angles_a',
+\	'*select-i-function*': 's:select_x_angles_i',
 \	'*sfile*': expand('<sfile>')
 \   },
 \   'x[]': {
 \	'select-a': ['ax[', 'ax]'],
 \	'select-i': ['ix[', 'ix]'],
-\	'*select-a-function*': 's:select_xbrackets_a',
-\	'*select-i-function*': 's:select_xbrackets_i',
+\	'*select-a-function*': 's:select_x_brackets_a',
+\	'*select-i-function*': 's:select_x_brackets_i',
 \	'*sfile*': expand('<sfile>')
 \   },
 \   'x{}': {
 \	'select-a': ['ax{', 'ax}', 'axB'],
 \	'select-i': ['ix{', 'ix}', 'ixB'],
-\	'*select-a-function*': 's:select_xbraces_a',
-\	'*select-i-function*': 's:select_xbraces_i',
+\	'*select-a-function*': 's:select_x_braces_a',
+\	'*select-i-function*': 's:select_x_braces_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'xs()': {
+\	'select-a': ['aX(', 'aX)', 'aXb'],
+\	'select-i': ['iX(', 'iX)', 'iXb'],
+\	'*select-a-function*': 's:select_xs_parens_a',
+\	'*select-i-function*': 's:select_xs_parens_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'xs<>': {
+\	'select-a': ['aX<', 'aX>'],
+\	'select-i': ['iX<', 'iX>'],
+\	'*select-a-function*': 's:select_xs_angles_a',
+\	'*select-i-function*': 's:select_xs_angles_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'xs[]': {
+\	'select-a': ['aX[', 'aX]'],
+\	'select-i': ['iX[', 'iX]'],
+\	'*select-a-function*': 's:select_xs_brackets_a',
+\	'*select-i-function*': 's:select_xs_brackets_i',
+\	'*sfile*': expand('<sfile>')
+\   },
+\   'xs{}': {
+\	'select-a': ['aX{', 'aX}', 'aXB'],
+\	'select-i': ['iX{', 'iX}', 'iXB'],
+\	'*select-a-function*': 's:select_xs_braces_a',
+\	'*select-i-function*': 's:select_xs_braces_i',
 \	'*sfile*': expand('<sfile>')
 \   },
 \})
@@ -157,6 +185,7 @@ function! s:select_i(open, func)
 endfunction
 
 function! s:x_func(b, e)
+    return s:xs_func(a:b, a:e, 1)
     let pos = getpos('.')
     call setpos('.', a:b)
 
@@ -167,36 +196,87 @@ function! s:x_func(b, e)
     return [b, a:e]
 endfunction
 
-function! s:select_xparens_a()
+function! s:xs_func(b, e, ...)
+    let max = a:0 > 0 ? a:1 : -1
+
+    let pos = getpos('.')
+    call setpos('.', a:b)
+
+    let b = []
+    let c = 0
+    normal! b
+    while s:getc() =~ '\k' && c != max
+	let b = getpos('.')
+	let c += 1
+	normal! b
+    endwhile
+
+    call setpos('.', pos)
+    return [b, a:e]
+endfunction
+
+function! s:select_x_parens_a()
     return s:select_a('(', function('s:x_func'))
 endfunction
 
-function! s:select_xparens_i()
+function! s:select_x_parens_i()
     return s:select_i('(', function('s:x_func'))
 endfunction
 
-function! s:select_xangles_a()
+function! s:select_x_angles_a()
     return s:select_a('<', function('s:x_func'))
 endfunction
 
-function! s:select_xangles_i()
+function! s:select_x_angles_i()
     return s:select_i('<', function('s:x_func'))
 endfunction
 
-function! s:select_xbrackets_a()
+function! s:select_x_brackets_a()
     return s:select_a('[', function('s:x_func'))
 endfunction
 
-function! s:select_xbrackets_i()
+function! s:select_x_brackets_i()
     return s:select_i('[', function('s:x_func'))
 endfunction
 
-function! s:select_xbraces_a()
+function! s:select_x_braces_a()
     return s:select_a('{', function('s:x_func'))
 endfunction
 
-function! s:select_xbraces_i()
+function! s:select_x_braces_i()
     return s:select_i('{', function('s:x_func'))
+endfunction
+
+function! s:select_xs_parens_a()
+    return s:select_a('(', function('s:xs_func'))
+endfunction
+
+function! s:select_xs_parens_i()
+    return s:select_i('(', function('s:xs_func'))
+endfunction
+
+function! s:select_xs_angles_a()
+    return s:select_a('<', function('s:xs_func'))
+endfunction
+
+function! s:select_xs_angles_i()
+    return s:select_i('<', function('s:xs_func'))
+endfunction
+
+function! s:select_xs_brackets_a()
+    return s:select_a('[', function('s:xs_func'))
+endfunction
+
+function! s:select_xs_brackets_i()
+    return s:select_i('[', function('s:xs_func'))
+endfunction
+
+function! s:select_xs_braces_a()
+    return s:select_a('{', function('s:xs_func'))
+endfunction
+
+function! s:select_xs_braces_i()
+    return s:select_i('{', function('s:xs_func'))
 endfunction
 
 function! s:variable_func(b, e)
