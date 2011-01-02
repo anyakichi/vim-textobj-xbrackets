@@ -289,10 +289,13 @@ function! s:xs_func(b, e, ...) " [max [, open [, isk]]]
 	let close = pairs[stridx(pairs, open) + 1]
 
 	call search('.', 'bW')
-	if s:getc() == close
-	    let e = getpos('.')
-	    normal! %
+	if s:getc() != close
+	    let &isk = isk_save
+	    call setpos('.', pos)
+	    return [[], []]
 	endif
+	let e = getpos('.')
+	normal! %
     endif
 
     let b = getpos('.')
