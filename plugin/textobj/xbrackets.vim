@@ -172,18 +172,21 @@ function! s:poscmp(a, b)
     return l1 - l2
 endfunction
 
-function! s:save_env()
-    let s:_save_pos = {}
+function! s:save_env(dict)
+    " Remove all entries.
+    call filter(a:dict, '0')
+
+    let a:dict['pos'] = {}
     for m in [".", "'[", "']"]
-	let s:_save_pos[m] = getpos(m)
+	let a:dict['pos'][m] = getpos(m)
     endfor
-    let s:_save_reg = [getreg('a'), getregtype('a')]
+    let a:dict['reg'] = [getreg('a'), getregtype('a')]
     call setreg('a', '')
 endfunction
 
-function! s:restore_env()
-    call setreg('a', s:_save_reg[0], s:_save_reg[1])
-    for [key, val] in items(s:_save_pos)
+function! s:restore_env(dict)
+    call setreg('a', a:dict['reg'][0], a:dict['reg'][1])
+    for [key, val] in items(a:dict['pos'])
 	call setpos(key, val)
     endfor
 endfunction
@@ -202,7 +205,8 @@ endfunction
 function! s:select_a(open, func)
     let c = v:count1
 
-    call s:save_env()
+    let env = {}
+    call s:save_env(env)
 
     let pos_save = getpos('.')
     let pairs = "()<>[]{}"
@@ -219,7 +223,7 @@ function! s:select_a(open, func)
 	execute 'normal! "aya' . a:open . '`['
 
 	if getreg('a') == '' || s:getc() != a:open
-	    call s:restore_env()
+	    call s:restore_env(env)
 	    return 0
 	endif
 
@@ -233,7 +237,7 @@ function! s:select_a(open, func)
 	call search('.', 'bW')
     endwhile
 
-    call s:restore_env()
+    call s:restore_env(env)
     return ['v', b, e]
 endfunction
 
@@ -246,7 +250,8 @@ function! s:select_i(open, func)
 
     let [type, oldb, olde] = result
 
-    call s:save_env()
+    let env = {}
+    call s:save_env(env)
 
     call setpos('.', oldb)
     call search(a:open, 'c')
@@ -255,7 +260,7 @@ function! s:select_i(open, func)
 
     let [b, e] = [getpos("'["), getpos("']")]
 
-    call s:restore_env()
+    call s:restore_env(env)
 
     if !(s:poscmp(oldb, b) < 0 && s:poscmp(e, olde) < 0)
 	return 0
