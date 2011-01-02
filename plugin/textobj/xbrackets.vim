@@ -295,10 +295,10 @@ function! s:xs_func(b, e, ...) " [max [, open [, isk]]]
 	endif
     endif
 
-    let b = []
+    let b = getpos('.')
     let c = 0
     normal! b
-    while s:getc() =~ '\k' && c != max
+    while s:getc() =~ '\k' && c != max && !(b[1] == 1 && b[2] == 1)
 	let b = getpos('.')
 	let c += 1
 	normal! b
@@ -306,6 +306,9 @@ function! s:xs_func(b, e, ...) " [max [, open [, isk]]]
 
     let &isk = isk_save
     call setpos('.', pos)
+    if c == 0
+	return [[], []]
+    endif
     return [b, a:e]
 endfunction
 
