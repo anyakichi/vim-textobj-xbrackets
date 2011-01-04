@@ -180,12 +180,21 @@ function! s:save_env(dict)
     for m in [".", "'[", "']"]
 	let a:dict['pos'][m] = getpos(m)
     endfor
+
+    let a:dict['topline'] = line('w0')
+
     let a:dict['reg'] = [getreg('a'), getregtype('a')]
     call setreg('a', '')
 endfunction
 
 function! s:restore_env(dict)
     call setreg('a', a:dict['reg'][0], a:dict['reg'][1])
+
+    normal! H
+    while line('w0') > a:dict['topline']
+	normal! k
+    endwhile
+
     for [key, val] in items(a:dict['pos'])
 	call setpos(key, val)
     endfor
@@ -196,6 +205,15 @@ function! s:get_extra_isk()
     \	      b:textobj_xbrackets_extra_iskeyword :
     \	      g:textobj_xbrackets_extra_iskeyword
     return isk
+endfunction
+
+function! s:get_pair(open)
+    let pairs = "()<>[]{}"
+    let i = stridx(pairs, a:open)
+    if i == -1
+	return ''
+    endif
+    return (i % 2 == 0) ? pairs[i + 1] : pairs[idx - 1]
 endfunction
 
 
@@ -209,26 +227,24 @@ function! s:select_a(open, func)
     call s:save_env(env)
 
     let pos_save = getpos('.')
-    let pairs = "()<>[]{}"
-    let open = a:open
-    let close = pairs[stridx(pairs, open) + 1]
+    let close = s:get_pair(a:open)
 
     let cpos = searchpos('\V' . close, 'cnW')
-    let opos = searchpos('\V' . open,  'cnW')
+    let opos = searchpos('\V' . a:open,  'cnW')
     if cpos == [0, 0] || s:poscmp(opos, cpos) < 0
-	call search(open, 'cW')
+	call search('\V' . a:open, 'cW')
     endif
 
     while 1
-	execute 'normal! "aya' . a:open . '`['
+	execute 'silent normal! "aya' . a:open . '`['
 
 	if getreg('a') == '' || s:getc() != a:open
 	    call s:restore_env(env)
 	    return 0
 	endif
 
-	let [b, e] = a:func(getpos("'["), getpos("']"))
-	if len(b) > 0 && len(e) > 0 && s:poscmp(b, pos_save) <= 0
+	let result = a:func(getpos("'["), getpos("']"))
+	if len(result) > 0 && s:poscmp(result[0], pos_save) <= 0
 	    let c -= 1
 	    if c == 0
 		break
@@ -238,7 +254,7 @@ function! s:select_a(open, func)
     endwhile
 
     call s:restore_env(env)
-    return ['v', b, e]
+    return ['v', result[0], result[1]]
 endfunction
 
 function! s:select_i(open, func)
@@ -256,7 +272,7 @@ function! s:select_i(open, func)
     call setpos('.', oldb)
     call search(a:open, 'c')
     let oldb = getpos('.')
-    execute 'normal! "ayi' . a:open
+    execute 'silent normal! "ayi' . a:open
 
     let [b, e] = [getpos("'["), getpos("']")]
 
@@ -285,14 +301,13 @@ function! s:xs_func(b, e, ...) " [max [, open [, isk]]]
     execute 'set isk+=' . isk
 
     if open != ''
-	let pairs = "()<>[]{}"
-	let close = pairs[stridx(pairs, open) + 1]
+	let close = s:get_pair(open)
 
 	call search('.', 'bW')
 	if s:getc() != close
 	    let &isk = isk_save
 	    call setpos('.', pos)
-	    return [[], []]
+	    return []
 	endif
 	let e = getpos('.')
 	normal! %
@@ -310,7 +325,7 @@ function! s:xs_func(b, e, ...) " [max [, open [, isk]]]
     let &isk = isk_save
     call setpos('.', pos)
     if c == 0
-	return [[], []]
+	return []
     endif
     return [b, a:e]
 endfunction
@@ -475,10 +490,10 @@ function! s:variable_func(b, e)
     call setpos('.', a:b)
 
     normal! h
-    let b = s:getc() == '$' ? getpos('.') : []
+    let result = s:getc() == '$' ? [getpos('.'), a:e] : []
 
     call setpos('.', pos)
-    return [b, a:e]
+    return result
 endfunction
 
 function! s:select_variable_b_a()
