@@ -530,8 +530,30 @@ function! s:select_variable_i()
     return s:select_variable_p_i()
 endfunction
 
+let s:surround_objects = {
+\   'x(': "\1x: \1(\r)",
+\   'x)': "\1x: \1( \r )",
+\   'xb': "\1x: \1(\r)",
+\   'x<': "\1x: \1<\r>",
+\   'x>': "\1x: \1< \r >",
+\   'x[': "\1x: \1[\r]",
+\   'x]': "\1x: \1[ \r ]",
+\   'x{': "\1x: \1{\r}",
+\   'x}': "\1x: \1{ \r }",
+\   'xB': "\1x: \1{\r}",
+\   '9': "\1x: \1(\r)",
+\   '0': "\1x: \1( \r )",
+\}
+
 if !exists("g:textobj_xbrackets_extra_iskeyword")
     let g:textobj_xbrackets_extra_iskeyword = "*"
+endif
+
+if !exists("g:textobj_xbrackets_surround") || g:textobj_xbrackets_surround
+    if !exists("g:surround_objects")
+	let g:surround_objects = {}
+    endif
+    call extend(g:surround_objects, s:surround_objects, "keep")
 endif
 
 let &cpo = s:save_cpo
