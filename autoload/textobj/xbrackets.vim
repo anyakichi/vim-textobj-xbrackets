@@ -1,6 +1,6 @@
 " Vim plugin for text-objects such as x(), x<>, x[], and x{}.
 " Maintainer: INAJIMA Daisuke <inajima@sopht.jp>
-" Version: 0.2
+" Version: 1.0
 
 let s:save_cpo = &cpo
 set cpo&vim
@@ -150,7 +150,7 @@ function! s:xs_func(b, e, ...) " [max [, open [, isk]]]
     if open != ''
 	let close = s:get_pair(open)
 
-	call search('.', 'bW')
+	call search('\S', 'bW')
 	if s:getc() != close
 	    let &isk = isk_save
 	    call setpos('.', pos)
