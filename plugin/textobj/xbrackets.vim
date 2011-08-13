@@ -1,6 +1,7 @@
 " Vim plugin for text-objects such as x(), x<>, x[], and x{}.
 " Maintainer: INAJIMA Daisuke <inajima@sopht.jp>
 " Version: 1.0
+" License: MIT License
 
 if exists("g:loaded_textobj_xbrackets")
     finish
